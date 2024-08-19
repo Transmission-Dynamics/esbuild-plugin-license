@@ -18,6 +18,7 @@ describe('esbuildPluginLicense', () => {
       plugins: [esbuildPluginLicense({
         thirdParty: {
           excludedPackageTest: (packageName) => packageName.startsWith('@babel/'),
+          unacceptableLicenseTest: (license) => license.includes('GPL'),
           additionalFiles: {
             './oss-summary.json': (deps) => {
               return JSON.stringify(

@@ -39,6 +39,7 @@ export interface Options {
     includePrivate?: boolean
     excludedPackageTest?: ExcludedPackageTestFunction
     additionalFiles?: Record<string, (dependencies: Dependency[]) => Promise<string> | string>
+    unacceptableLicenseTest?: (license: string) => boolean,
     output?: {
       file?: string
       /**
@@ -90,6 +91,7 @@ export const defaultOptions: DeepRequired<Options> = {
     includePrivate: false,
     additionalFiles: {},
     excludedPackageTest: () => false,
+    unacceptableLicenseTest: () => false,
     output: {
       file: 'oss-licenses.json',
       template: defaultTemplateFunction,
@@ -167,6 +169,14 @@ export default function esbuildPluginLicense(options: Options = {}): Plugin {
 
         const excludedPackageTest = options.thirdParty?.excludedPackageTest ?? defaultOptions.thirdParty.excludedPackageTest
         dependencies = dependencies.filter(dependency => !excludedPackageTest(dependency.packageJson.name))
+
+        const unacceptableLicenseTest = options.thirdParty?.unacceptableLicenseTest ?? defaultOptions.thirdParty.unacceptableLicenseTest
+        dependencies.forEach(dependency => {
+          if (dependency.packageJson.license && unacceptableLicenseTest(dependency.packageJson.license)) {
+            throw new Error(`Unacceptable license ${dependency.packageJson.license} for ${dependency.packageJson.name}`)
+          }
+        })
+
 
         let thirdPartyLicenseResult = ''
         if (typeof outputTemplate === 'string') {
