@@ -59009,5 +59009,14 @@ module.exports = __toCommonJS(test_exports);
 ]",
     "path": "oss-licenses.json",
   },
+  Object {
+    "content": "{
+  \\"MIT\\": 19,
+  \\"CC-BY-4.0\\": 1,
+  \\"ISC\\": 2,
+  \\"BSD-3-Clause\\": 1
+}",
+    "path": "oss-summary.json",
+  },
 ]
 `;
