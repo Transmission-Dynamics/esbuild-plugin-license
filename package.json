@@ -1,6 +1,6 @@
 {
   "name": "@transmission-dynamics/esbuild-plugin-license",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Manage third-party license compliance in your esbuild",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
