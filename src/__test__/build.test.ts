@@ -17,7 +17,19 @@ describe('esbuildPluginLicense', () => {
       entryPoints: [path.join(__dirname, 'index.ts')],
       plugins: [esbuildPluginLicense({
         thirdParty: {
-          excludedPackageTest: (packageName) => packageName.startsWith('@babel/')
+          excludedPackageTest: (packageName) => packageName.startsWith('@babel/'),
+          additionalFiles: {
+            './oss-summary.json': (deps) => {
+              return JSON.stringify(
+                deps.reduce(
+                  (prev, dep) => ({ ...prev, [dep.packageJson.license ?? "UNKNOWN"]: (prev[dep.packageJson.license ?? "UNKNOWN"] ?? 0) + 1 }),
+                  {} as Record<string, number>
+                ),
+                null,
+                2,
+              );
+            },
+          }
         }
       })],
       bundle: true,

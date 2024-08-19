@@ -38,6 +38,7 @@ export interface Options {
      */
     includePrivate?: boolean
     excludedPackageTest?: ExcludedPackageTestFunction
+    additionalFiles?: Record<string, (dependencies: Dependency[]) => Promise<string> | string>
     output?: {
       file?: string
       /**
@@ -87,6 +88,7 @@ export const defaultOptions: DeepRequired<Options> = {
   banner: `/*! <%= pkg.name %> v<%= pkg.version %> | <%= pkg.license %> */`,
   thirdParty: {
     includePrivate: false,
+    additionalFiles: {},
     excludedPackageTest: () => false,
     output: {
       file: 'oss-licenses.json',
@@ -177,6 +179,17 @@ export default function esbuildPluginLicense(options: Options = {}): Plugin {
         }
         if (thirdPartyLicenseResult) {
           fs.writeFileSync(outputFile, thirdPartyLicenseResult, {
+            encoding: 'utf-8'
+          })
+        }
+
+        const additionalFiles = options.thirdParty?.additionalFiles ?? defaultOptions.thirdParty.additionalFiles
+        for (const [fileName, templateFunction] of Object.entries(additionalFiles)) {
+          let filePath = fileName
+          if (!path.isAbsolute(filePath)) filePath = path.join(outdir, fileName)
+
+          const result = await templateFunction(dependencies)
+          fs.writeFileSync(filePath, result, {
             encoding: 'utf-8'
           })
         }
