@@ -28,6 +28,7 @@ export interface Dependency {
 }
 
 export type TemplateFunction = (dependencies: Dependency[], self: Dependency) => string
+export type ExcludedPackageTestFunction = (packageName: string) => boolean
 
 export interface Options {
   banner?: string
@@ -36,6 +37,7 @@ export interface Options {
      * @default false
      */
     includePrivate?: boolean
+    excludedPackageTest?: ExcludedPackageTestFunction
     output?: {
       file?: string
       /**
@@ -44,6 +46,7 @@ export interface Options {
        */
       template?: string | TemplateFunction
     }
+
   }
 }
 
@@ -84,6 +87,7 @@ export const defaultOptions: DeepRequired<Options> = {
   banner: `/*! <%= pkg.name %> v<%= pkg.version %> | <%= pkg.license %> */`,
   thirdParty: {
     includePrivate: false,
+    excludedPackageTest: () => false,
     output: {
       file: 'oss-licenses.json',
       template: defaultTemplateFunction,
@@ -93,7 +97,7 @@ export const defaultOptions: DeepRequired<Options> = {
 
 export default function esbuildPluginLicense(options: Options = {}): Plugin {
   const loadedPackages: Map<string, NormalizedReadResult> = new Map()
-  const dependencies: Dependency[] = []
+  let dependencies: Dependency[] = []
   const getLicenseText = async (pkgJsonPath: string) => {
     const dir = path.dirname(pkgJsonPath)
     const files = fs.readdirSync(dir)
@@ -158,6 +162,9 @@ export default function esbuildPluginLicense(options: Options = {}): Plugin {
 
         const outdir = build.initialOptions.outdir ?? '.'
         if (!path.isAbsolute(outputFile)) outputFile = path.join(outdir, outputFile)
+
+        const excludedPackageTest = options.thirdParty?.excludedPackageTest ?? defaultOptions.thirdParty.excludedPackageTest
+        dependencies = dependencies.filter(dependency => !excludedPackageTest(dependency.packageJson.name))
 
         let thirdPartyLicenseResult = ''
         if (typeof outputTemplate === 'string') {
