@@ -34,6 +34,7 @@ export const defaultOptions: DeepRequired<Options> = {
   banner: `/*! <%= pkg.name %> v<%= pkg.version %> | <%= pkg.license %> */`,
   thirdParty: {
     includePrivate: false,
+    excludedPackageTest: (packageName) => false,
     output: {
       file: 'oss-licenses.json',
       // Template function that can be defined to customize report output
